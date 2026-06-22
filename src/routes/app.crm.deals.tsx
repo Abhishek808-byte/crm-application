@@ -10,7 +10,7 @@ export const Route = createFileRoute("/app/crm/deals")({
   component: CRMDeals,
 });
 
-const DEAL_STAGES = ["proposal_sent", "negotiation", "won"] as const;
+const DEAL_STAGES = ["email_review", "response", "demo", "won"] as const;
 
 function fmtCurrency(v?: string) {
   if (!v) return "—";
@@ -28,7 +28,7 @@ function CRMDeals() {
   const [activeStage, setActiveStage] = useState<string>("all");
 
   const deals = CONTACTS.filter(c =>
-    ["proposal_sent", "negotiation", "won"].includes(c.stage) && c.dealValue
+    ["email_review", "response", "demo", "won"].includes(c.stage) && c.dealValue
   );
 
   const filtered = activeStage === "all" ? deals : deals.filter(d => d.stage === activeStage);

@@ -36,11 +36,10 @@ export const MODULES: ModuleDef[] = [
     submodules: [
       { label: "Contacts",  path: "/app/crm/contacts",  icon: Contact,      description: "Contacts, leads & deals"    },
       { label: "Accounts",  path: "/app/crm/accounts",  icon: Building2,    description: "Company accounts & health"  },
-      { label: "Automation", path: "/app/crm/pipeline",  icon: GitMerge,     description: "AI-powered sales workflows"  },
+      { label: "Pipeline",  path: "/app/crm/pipeline",  icon: GitMerge,     description: "Stage funnel & conversion"  },
       { label: "Deals",     path: "/app/crm/deals",     icon: Target,       description: "Pipeline & forecast"        },
       { label: "Tasks",     path: "/app/crm/tasks",     icon: ListChecks,   description: "Tasks, calls & meetings", badge: "8" },
       { label: "Calendar",  path: "/app/calendar",      icon: CalendarDays, description: "Demos, calls & deadlines"   },
-      { label: "Marketing", path: "/app/marketing",     icon: Megaphone,    description: "Campaigns, content & ICP"   },
     ],
   },
   {
@@ -120,9 +119,8 @@ function buildWorkspace(
 
 export const WORKSPACES: Record<string, WorkspaceConfig> = {
   crm: buildWorkspace("crm", "CRM", [
-    { title: "Records",   itemPaths: ["/app/crm/contacts", "/app/crm/accounts", "/app/crm/deals"] },
-    { title: "Activity",  itemPaths: ["/app/crm/pipeline", "/app/crm/tasks", "/app/calendar"]    },
-    { title: "Marketing", itemPaths: ["/app/marketing"]                                           },
+    { title: "Records",  itemPaths: ["/app/crm/contacts", "/app/crm/accounts", "/app/crm/deals"] },
+    { title: "Activity", itemPaths: ["/app/crm/pipeline", "/app/crm/tasks", "/app/calendar"]    },
   ], [
     { label: "Q3 Enterprise Push",  path: "/app/crm/pipeline", ref: "PIPE-Q3",  progress: 42 },
     { label: "Healthcare Vertical", path: "/app/crm/deals",    ref: "DEAL-HCX", progress: 68 },
