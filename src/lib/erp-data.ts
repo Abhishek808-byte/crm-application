@@ -3,8 +3,8 @@
 // ── Contacts / Leads ─────────────────────────────────────────────────────────
 
 export type ContactStage =
-  | "crm" | "icp" | "qualification" | "email_review"
-  | "response" | "demo" | "won" | "disqualified";
+  | "new" | "contacted" | "qualified" | "proposal_sent"
+  | "negotiation" | "won" | "lost";
 
 export interface Contact {
   id: string;
@@ -28,50 +28,49 @@ export interface Contact {
   employees?: string;
   funding?: string;
   selected?: boolean;
+  labels?: string[];
 }
 
 export const STAGE_META: Record<ContactStage, { label: string; color: string; bg: string; group: "contact" | "lead" | "deal" | "won" | "lost" }> = {
-  crm:           { label: "CRM",           color: "text-blue-700",   bg: "bg-blue-50",    group: "contact"  },
-  icp:           { label: "ICP Scored",    color: "text-indigo-700", bg: "bg-indigo-50",  group: "lead"     },
-  qualification: { label: "Qualification", color: "text-cyan-700",   bg: "bg-cyan-50",    group: "lead"     },
-  email_review:  { label: "Outreach",      color: "text-amber-700",  bg: "bg-amber-50",   group: "deal"     },
-  response:      { label: "Response",      color: "text-emerald-700",bg: "bg-emerald-50", group: "deal"     },
-  demo:          { label: "Demo",          color: "text-violet-700", bg: "bg-violet-50",  group: "deal"     },
-  won:           { label: "Won",           color: "text-green-700",  bg: "bg-green-100",  group: "won"      },
-  disqualified:  { label: "Disqualified",  color: "text-red-700",    bg: "bg-red-50",     group: "lost"     },
+  new:           { label: "New",           color: "text-blue-700",   bg: "bg-blue-50",    group: "contact" },
+  contacted:     { label: "Contacted",     color: "text-indigo-700", bg: "bg-indigo-50",  group: "lead"    },
+  qualified:     { label: "Qualified",     color: "text-cyan-700",   bg: "bg-cyan-50",    group: "lead"    },
+  proposal_sent: { label: "Proposal Sent", color: "text-amber-700",  bg: "bg-amber-50",   group: "deal"    },
+  negotiation:   { label: "Negotiation",   color: "text-violet-700", bg: "bg-violet-50",  group: "deal"    },
+  won:           { label: "Won",           color: "text-green-700",  bg: "bg-green-100",  group: "won"     },
+  lost:          { label: "Lost",          color: "text-red-700",    bg: "bg-red-50",     group: "lost"    },
 };
 
 export const PIPELINE_STAGES: { key: ContactStage; label: string; num: string; description: string }[] = [
-  { key: "crm",           label: "CRM Ingestion",       num: "01", description: "Import, de-duplicate, enrich" },
-  { key: "icp",           label: "ICP Engine",           num: "02", description: "Social scraping & scoring" },
-  { key: "qualification", label: "Lead Qualification",   num: "03", description: "AI-reviewed, decision pending" },
-  { key: "email_review",  label: "Outreach Sequences",   num: "04", description: "Draft personalised, review, send" },
-  { key: "response",      label: "Response Management",  num: "05", description: "Sent → opened → replied" },
-  { key: "demo",          label: "Demo Scheduled",       num: "06", description: "Prep and run live demo" },
+  { key: "new",           label: "New",           num: "01", description: "Newly added contacts" },
+  { key: "contacted",     label: "Contacted",     num: "02", description: "Initial outreach made" },
+  { key: "qualified",     label: "Qualified",     num: "03", description: "Meets ICP criteria" },
+  { key: "proposal_sent", label: "Proposal Sent", num: "04", description: "Proposal delivered to prospect" },
+  { key: "negotiation",   label: "Negotiation",   num: "05", description: "Active negotiation in progress" },
+  { key: "won",           label: "Won",           num: "06", description: "Deal closed and won" },
 ];
 
 export const STAGE_CONVERSIONS = [
-  { from: "CRM",           to: "ICP",           pct: 100 },
-  { from: "ICP",           to: "Qualified",      pct: 72  },
-  { from: "Qualified",     to: "Email",          pct: 88  },
-  { from: "Email",         to: "Response",       pct: 61  },
-  { from: "Response",      to: "Demo",           pct: 33  },
-  { from: "Demo",          to: "Won",            pct: 46  },
+  { from: "New",           to: "Contacted",     pct: 85 },
+  { from: "Contacted",     to: "Qualified",     pct: 72 },
+  { from: "Qualified",     to: "Proposal Sent", pct: 88 },
+  { from: "Proposal Sent", to: "Negotiation",   pct: 61 },
+  { from: "Negotiation",   to: "Won",           pct: 46 },
 ];
 
 export const CONTACTS: Contact[] = [
-  { id: "C-001", name: "Arjun Mehta",       initials: "AM", title: "CTO",                    company: "Northstar Industries",   domain: "northstar.io",      email: "arjun@northstar.io",      phone: "+91 98765 43210", location: "Bengaluru", industry: "SaaS",           source: "LinkedIn",       stage: "demo",          icpScore: 91, dealValue: "$124,000", demoDate: "2026-06-22", lastActivity: "1d ago", intent: "High",   employees: "500-1000", funding: "Series C" },
-  { id: "C-002", name: "Sofia Reyes",        initials: "SR", title: "VP Marketing",           company: "Verdant Pharma",          domain: "verdantpharma.com", email: "sreyes@verdantpharma.com", location: "Mexico City", industry: "Healthcare",      source: "Domain enrich",  stage: "response",      icpScore: 83, dealValue: "$89,000",  closeDate: "2026-07-12", lastActivity: "3d ago", intent: "Medium", employees: "1000+",    funding: "Public"   },
-  { id: "C-003", name: "James O'Brien",      initials: "JO", title: "Head of Engineering",    company: "Loom & Co",               domain: "loomandco.com",     email: "jobrien@loomandco.com",   location: "Dublin",      industry: "Fintech",         source: "visitor.iq",     stage: "email_review",  icpScore: 75, dealValue: "$42,000",  closeDate: "2026-08-01", lastActivity: "5h ago", intent: "High",   employees: "200-500",  funding: "Series B" },
-  { id: "C-004", name: "Mei Lin",            initials: "ML", title: "Director of Operations", company: "Pixelforge Studios",      domain: "pixelforge.io",     email: "mei@pixelforge.io",       location: "Singapore",   industry: "Media & Entertainment", source: "LinkedIn",  stage: "qualification", icpScore: 62, dealValue: "$28,500",  lastActivity: "2d ago", intent: "Medium", employees: "50-200",   funding: "Seed"     },
-  { id: "C-005", name: "David Okonkwo",      initials: "DO", title: "CEO",                    company: "Helix Labs",              domain: "helixlabs.ai",      email: "david@helixlabs.ai",      location: "Lagos",       industry: "Biotech",         source: "Domain enrich",  stage: "icp",           icpScore: 88, lastActivity: "1d ago", intent: "High",   employees: "50-200",   funding: "Series A" },
-  { id: "C-006", name: "Emma Schulz",        initials: "ES", title: "Product Manager",        company: "CloudWave Solutions",     domain: "cloudwave.de",      email: "emma@cloudwave.de",       location: "Berlin",      industry: "Cloud Infrastructure", source: "visitor.iq", stage: "crm",           icpScore: 45, lastActivity: "7d ago", intent: "Low",    employees: "200-500",  funding: "Bootstrapped" },
-  { id: "C-007", name: "Lucas Ferreira",     initials: "LF", title: "Sales Director",         company: "Brio Commerce",           domain: "briocommerce.com",  email: "lucas@briocommerce.com",  location: "São Paulo",   industry: "E-Commerce",      source: "LinkedIn",       stage: "won",           icpScore: 95, dealValue: "$156,000", closeDate: "2026-05-28", lastActivity: "Closed", intent: "High", employees: "1000+",   funding: "Series D"  },
-  { id: "C-008", name: "Priya Kapoor",       initials: "PK", title: "Engineering Manager",    company: "TechNova Pvt Ltd",        domain: "technova.in",       email: "priya@technova.in",       location: "Hyderabad",   industry: "SaaS",            source: "Domain enrich",  stage: "demo",          icpScore: 79, dealValue: "$55,000",  demoDate: "2026-06-25", lastActivity: "2h ago", intent: "High",   employees: "200-500",  funding: "Series A" },
-  { id: "C-009", name: "Tomáš Novák",        initials: "TN", title: "CIO",                    company: "Skoda Digital",           domain: "skodadigital.cz",   email: "tomas@skodadigital.cz",   location: "Prague",      industry: "Automotive",      source: "visitor.iq",     stage: "qualification", icpScore: 58, dealValue: "$38,000",  lastActivity: "4d ago", intent: "Medium", employees: "1000+",    funding: "Public"   },
-  { id: "C-010", name: "Aiko Nakamura",      initials: "AN", title: "VP Sales",               company: "Synapse Co",              domain: "synapse.co.jp",     email: "aiko@synapse.co.jp",      location: "Tokyo",       industry: "AI / ML",         source: "LinkedIn",       stage: "response",      icpScore: 86, dealValue: "$72,000",  closeDate: "2026-07-20", lastActivity: "6h ago", intent: "High",   employees: "50-200",   funding: "Series B" },
-  { id: "C-011", name: "Ben Carter",         initials: "BC", title: "Founder",                company: "Groveyard",               domain: "groveyard.io",      email: "ben@groveyard.io",        location: "Austin",      industry: "AgriTech",        source: "visitor.iq",     stage: "icp",           icpScore: 0,  lastActivity: "3d ago", intent: "Medium", employees: "10-50",    funding: "Pre-seed" },
-  { id: "C-012", name: "Natasha Orlova",     initials: "NO", title: "CFO",                    company: "MedRoute Inc",            domain: "medroute.com",      email: "natasha@medroute.com",    location: "Chicago",     industry: "Healthcare",      source: "Domain enrich",  stage: "disqualified",  icpScore: 31, lastActivity: "2w ago", intent: "Low",    employees: "50-200",   funding: "Bootstrapped" },
+  { id: "C-001", name: "Arjun Mehta",       initials: "AM", title: "CTO",                    company: "Northstar Industries",   domain: "northstar.io",      email: "arjun@northstar.io",      phone: "+91 98765 43210", location: "Bengaluru", industry: "SaaS",                  source: "LinkedIn",       stage: "negotiation",   icpScore: 91, dealValue: "$124,000", closeDate: "2026-06-30", lastActivity: "1d ago",  intent: "High",   employees: "500-1000", funding: "Series C"    },
+  { id: "C-002", name: "Sofia Reyes",        initials: "SR", title: "VP Marketing",           company: "Verdant Pharma",         domain: "verdantpharma.com", email: "sreyes@verdantpharma.com", location: "Mexico City", industry: "Healthcare",            source: "Domain enrich",  stage: "proposal_sent", icpScore: 83, dealValue: "$89,000",  closeDate: "2026-07-12", lastActivity: "3d ago",  intent: "Medium", employees: "1000+",    funding: "Public"      },
+  { id: "C-003", name: "James O'Brien",      initials: "JO", title: "Head of Engineering",    company: "Loom & Co",              domain: "loomandco.com",     email: "jobrien@loomandco.com",   location: "Dublin",      industry: "Fintech",               source: "visitor.iq",     stage: "contacted",     icpScore: 75, dealValue: "$42,000",  closeDate: "2026-08-01", lastActivity: "5h ago",  intent: "High",   employees: "200-500",  funding: "Series B"    },
+  { id: "C-004", name: "Mei Lin",            initials: "ML", title: "Director of Operations", company: "Pixelforge Studios",     domain: "pixelforge.io",     email: "mei@pixelforge.io",       location: "Singapore",   industry: "Media & Entertainment", source: "LinkedIn",       stage: "qualified",     icpScore: 62, dealValue: "$28,500",  lastActivity: "2d ago",  intent: "Medium", employees: "50-200",   funding: "Seed"        },
+  { id: "C-005", name: "David Okonkwo",      initials: "DO", title: "CEO",                    company: "Helix Labs",             domain: "helixlabs.ai",      email: "david@helixlabs.ai",      location: "Lagos",       industry: "Biotech",               source: "Domain enrich",  stage: "contacted",     icpScore: 88, lastActivity: "1d ago",  intent: "High",   employees: "50-200",   funding: "Series A"    },
+  { id: "C-006", name: "Emma Schulz",        initials: "ES", title: "Product Manager",        company: "CloudWave Solutions",    domain: "cloudwave.de",      email: "emma@cloudwave.de",       location: "Berlin",      industry: "Cloud Infrastructure",  source: "visitor.iq",     stage: "new",           icpScore: 45, lastActivity: "7d ago",  intent: "Low",    employees: "200-500",  funding: "Bootstrapped" },
+  { id: "C-007", name: "Lucas Ferreira",     initials: "LF", title: "Sales Director",         company: "Brio Commerce",          domain: "briocommerce.com",  email: "lucas@briocommerce.com",  location: "São Paulo",   industry: "E-Commerce",            source: "LinkedIn",       stage: "won",           icpScore: 95, dealValue: "$156,000", closeDate: "2026-05-28", lastActivity: "Closed",  intent: "High",   employees: "1000+",    funding: "Series D"    },
+  { id: "C-008", name: "Priya Kapoor",       initials: "PK", title: "Engineering Manager",    company: "TechNova Pvt Ltd",       domain: "technova.in",       email: "priya@technova.in",       location: "Hyderabad",   industry: "SaaS",                  source: "Domain enrich",  stage: "negotiation",   icpScore: 79, dealValue: "$55,000",  closeDate: "2026-06-28", lastActivity: "2h ago",  intent: "High",   employees: "200-500",  funding: "Series A"    },
+  { id: "C-009", name: "Tomáš Novák",        initials: "TN", title: "CIO",                    company: "Skoda Digital",          domain: "skodadigital.cz",   email: "tomas@skodadigital.cz",   location: "Prague",      industry: "Automotive",            source: "visitor.iq",     stage: "qualified",     icpScore: 58, dealValue: "$38,000",  lastActivity: "4d ago",  intent: "Medium", employees: "1000+",    funding: "Public"      },
+  { id: "C-010", name: "Aiko Nakamura",      initials: "AN", title: "VP Sales",               company: "Synapse Co",             domain: "synapse.co.jp",     email: "aiko@synapse.co.jp",      location: "Tokyo",       industry: "AI / ML",               source: "LinkedIn",       stage: "proposal_sent", icpScore: 86, dealValue: "$72,000",  closeDate: "2026-07-20", lastActivity: "6h ago",  intent: "High",   employees: "50-200",   funding: "Series B"    },
+  { id: "C-011", name: "Ben Carter",         initials: "BC", title: "Founder",                company: "Groveyard",              domain: "groveyard.io",      email: "ben@groveyard.io",        location: "Austin",      industry: "AgriTech",              source: "visitor.iq",     stage: "new",           icpScore: 0,  lastActivity: "3d ago",  intent: "Medium", employees: "10-50",    funding: "Pre-seed"    },
+  { id: "C-012", name: "Natasha Orlova",     initials: "NO", title: "CFO",                    company: "MedRoute Inc",           domain: "medroute.com",      email: "natasha@medroute.com",    location: "Chicago",     industry: "Healthcare",            source: "Domain enrich",  stage: "lost",          icpScore: 31, lastActivity: "2w ago",  intent: "Low",    employees: "50-200",   funding: "Bootstrapped" },
 ];
 
 // ── Tasks ─────────────────────────────────────────────────────────────────────

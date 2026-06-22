@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader, PageTab } from "@/components/shell/PageHeader";
-import { StatusPill } from "@/components/shell/StatusPill";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +20,7 @@ import {
   Trash2, Edit, Calendar, User, Zap,
 } from "lucide-react";
 import { useState, useMemo } from "react";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/crm/tasks")({
   component: CRMTasks,
@@ -208,54 +208,67 @@ function CRMTasks() {
       {/* Board view */}
       {view === "board" && (
         <div className="flex-1 overflow-auto scrollbar-thin p-6">
-          <div className="flex gap-4 min-w-max">
+          <div className="flex gap-5 min-w-max items-start">
             {(["high", "medium", "low"] as TaskPriority[]).map(pri => {
               const priTasks = visible.filter(t => t.priority === pri);
               return (
-                <div key={pri} className="w-72 bg-surface rounded-lg border border-border overflow-hidden shrink-0">
-                  <div className={`px-4 py-2.5 border-b border-border flex items-center justify-between ${PRIORITY_BG[pri]}`}>
-                    <span className={`text-[10px] font-bold uppercase tracking-wider ${PRIORITY_COLOR[pri]}`}>
-                      {pri} Priority
+                <div key={pri} className="w-72 shrink-0">
+                  {/* Column header */}
+                  <div className="flex items-center gap-2 mb-3 px-1">
+                    <span className={cn("size-2 rounded-full", pri === "high" ? "bg-destructive" : pri === "medium" ? "bg-warning" : "bg-success")} />
+                    <span className={cn("text-[11px] font-bold uppercase tracking-wider", PRIORITY_COLOR[pri])}>
+                      {pri}
                     </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full text-white ${
-                      pri === "high" ? "bg-destructive" : pri === "medium" ? "bg-warning" : "bg-success"
-                    }`}>{priTasks.length}</span>
+                    <span className="ml-auto text-[10px] font-semibold text-muted-foreground">{priTasks.length}</span>
                   </div>
-                  <div className="p-2 flex flex-col gap-2">
+
+                  {/* Cards */}
+                  <div className="flex flex-col gap-2">
                     {priTasks.length === 0 && (
-                      <div className="text-xs text-muted-foreground text-center py-6">No tasks</div>
+                      <div className="text-xs text-muted-foreground text-center py-8">No tasks</div>
                     )}
                     {priTasks.map(t => {
-                      const isDone = done.has(t.id);
+                      const isDone    = done.has(t.id);
                       const isOverdue = t.dueDate && new Date(t.dueDate) < now && !isDone;
                       return (
                         <div
                           key={t.id}
                           onClick={() => setDetail(t)}
-                          className={`bg-card rounded-lg border p-3 cursor-pointer transition-shadow hover:shadow-md ${
-                            isDone ? "opacity-60 border-border" : isOverdue ? "border-destructive/30" : "border-border"
-                          }`}
-                          style={{ borderLeftColor: t.color, borderLeftWidth: 3 }}
+                          className={cn(
+                            "bg-card border border-border rounded-lg p-3 cursor-pointer hover:border-border/80 hover:shadow-sm transition-all",
+                            isDone && "opacity-50"
+                          )}
                         >
-                          <div className="flex items-start gap-2 mb-1.5">
+                          {/* Type dot + title */}
+                          <div className="flex items-start gap-2">
                             <button
                               onClick={e => { e.stopPropagation(); toggleDone(t.id); }}
                               className="mt-0.5 shrink-0"
                             >
                               {isDone
-                                ? <CheckCircle2 className="size-3.5" style={{ color: t.color }} />
-                                : <Circle className="size-3.5 text-muted-foreground" />}
+                                ? <CheckCircle2 className="size-3.5 text-success" />
+                                : <Circle       className="size-3.5 text-muted-foreground/40" />}
                             </button>
-                            <span className={`text-xs font-medium flex-1 ${isDone ? "line-through text-muted-foreground" : ""}`}>
+                            <span className={cn("text-xs font-medium flex-1 leading-snug", isDone && "line-through text-muted-foreground")}>
                               {t.title}
                             </span>
                           </div>
-                          {t.company && <div className="text-[10px] text-muted-foreground ml-5">{t.company}</div>}
-                          {t.dueDate && (
-                            <div className={`text-[10px] ml-5 mt-1 font-medium ${isOverdue && !isDone ? "text-destructive" : "text-muted-foreground"}`}>
-                              📅 {t.dueDate}
-                            </div>
-                          )}
+
+                          {/* Footer row */}
+                          <div className="flex items-center gap-2 mt-2 ml-5">
+                            <span className="size-1.5 rounded-full shrink-0" style={{ backgroundColor: t.color }} />
+                            <span className="text-[10px] text-muted-foreground flex-1 truncate">
+                              {t.contactName || t.label}
+                            </span>
+                            {t.dueDate && (
+                              <span className={cn(
+                                "text-[10px] font-medium shrink-0",
+                                isOverdue && !isDone ? "text-destructive" : "text-muted-foreground/60"
+                              )}>
+                                {t.dueDate}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
@@ -343,7 +356,7 @@ function CRMTasks() {
 
       {/* List view */}
       {view === "list" && (
-        <div className="flex-1 overflow-auto scrollbar-thin p-6">
+        <div className="flex-1 overflow-auto scrollbar-thin">
           {visible.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
               <CheckCircle2 className="size-10 opacity-30" />
@@ -351,90 +364,127 @@ function CRMTasks() {
               {tab === "all" && <Button size="sm" onClick={openNew}><Plus className="size-3.5" /> Create first task</Button>}
             </div>
           ) : (
-            <div className="flex flex-col gap-2">
-              {visible.map(t => {
-                const isDone = done.has(t.id);
-                const isOverdue = t.dueDate && new Date(t.dueDate) < now && !isDone;
-                return (
-                  <div
-                    key={t.id}
-                    onClick={() => setDetail(t)}
-                    className={`flex items-center gap-3 bg-card rounded-xl border p-3 cursor-pointer transition-all hover:shadow-sm ${
-                      isDone ? "opacity-65 border-border" : isOverdue ? "border-destructive/30" : "border-border"
-                    }`}
-                    style={!isDone && !isOverdue ? { borderLeftColor: t.color, borderLeftWidth: 3 } : {}}
-                  >
-                    <button
-                      onClick={e => { e.stopPropagation(); toggleDone(t.id); }}
-                      className="shrink-0"
-                    >
-                      {isDone
-                        ? <CheckCircle2 className="size-4" style={{ color: t.color }} />
-                        : <Circle className="size-4 text-muted-foreground" />}
-                    </button>
-
-                    {/* Type badge */}
-                    <div
-                      className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0"
-                      style={{ color: t.color, backgroundColor: t.bgColor }}
-                    >
-                      <span>{t.icon}</span>
-                      <span>{t.label}</span>
-                    </div>
-
-                    {/* Title + contact */}
-                    <div className="flex-1 min-w-0">
-                      <div className={`text-xs font-semibold truncate ${isDone ? "line-through text-muted-foreground" : ""}`}>
-                        {t.title}
-                      </div>
-                      {t.contactName && (
-                        <div className="text-[10px] text-muted-foreground truncate mt-0.5">
-                          {t.contactName} · {t.company}
-                        </div>
+            <table className="w-full">
+              <thead className="sticky top-0 bg-card border-b border-border z-10">
+                <tr>
+                  <th className="px-4 py-2.5 w-8" />
+                  <th className="px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Task</th>
+                  <th className="px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-24">Priority</th>
+                  <th className="px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-32">Due Date</th>
+                  <th className="px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-32">Assignee</th>
+                  <th className="px-3 py-2.5 w-16" />
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map(t => {
+                  const isDone    = done.has(t.id);
+                  const isOverdue = t.dueDate && new Date(t.dueDate) < now && !isDone;
+                  return (
+                    <tr
+                      key={t.id}
+                      onClick={() => setDetail(t)}
+                      className={cn(
+                        "border-b border-border cursor-pointer transition-colors hover:bg-surface group",
+                        isDone && "opacity-50"
                       )}
-                    </div>
-
-                    {/* Priority */}
-                    <StatusPill
-                      tone={t.priority === "high" ? "danger" : t.priority === "medium" ? "warning" : "success"}
                     >
-                      {t.priority}
-                    </StatusPill>
+                      {/* Done toggle */}
+                      <td className="px-4 py-3" onClick={e => { e.stopPropagation(); toggleDone(t.id); }}>
+                        {isDone
+                          ? <CheckCircle2 className="size-4 text-success" />
+                          : <Circle       className="size-4 text-muted-foreground/40 hover:text-muted-foreground" />}
+                      </td>
 
-                    {/* Due date */}
-                    {t.dueDate && (
-                      <span className={`text-[10px] shrink-0 flex items-center gap-1 ${isOverdue && !isDone ? "text-destructive font-semibold" : "text-muted-foreground"}`}>
-                        <Calendar className="size-3" /> {t.dueDate}
-                      </span>
-                    )}
+                      {/* Task title + type dot + contact */}
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-2">
+                          {/* Small type colour dot */}
+                          <span
+                            className="size-2 rounded-full shrink-0"
+                            style={{ backgroundColor: t.color }}
+                          />
+                          <div className="min-w-0">
+                            <div className={cn(
+                              "text-xs font-medium truncate",
+                              isDone && "line-through text-muted-foreground"
+                            )}>
+                              {t.title}
+                            </div>
+                            {t.contactName && (
+                              <div className="text-[10px] text-muted-foreground truncate mt-0.5">
+                                {t.contactName} · {t.company}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
 
-                    {/* Assignee */}
-                    <div className="size-6 rounded-full bg-primary/10 text-primary grid place-items-center text-[9px] font-bold shrink-0">
-                      {t.assignee.split(" ").map(p => p[0]).join("")}
-                    </div>
+                      {/* Priority — plain text, no background box */}
+                      <td className="px-3 py-3">
+                        <span className={cn(
+                          "text-[10px] font-semibold uppercase tracking-wide",
+                          t.priority === "high"   ? "text-destructive"
+                          : t.priority === "medium" ? "text-warning"
+                          : "text-success"
+                        )}>
+                          {t.priority}
+                        </span>
+                      </td>
 
-                    {/* Auto badge */}
-                    {t.isAuto && (
-                      <span className="text-[9px] font-semibold text-muted-foreground flex items-center gap-0.5">
-                        <Zap className="size-2.5" /> auto
-                      </span>
-                    )}
+                      {/* Due date */}
+                      <td className="px-3 py-3">
+                        {t.dueDate ? (
+                          <span className={cn(
+                            "text-[11px]",
+                            isOverdue && !isDone
+                              ? "text-destructive font-semibold"
+                              : "text-muted-foreground"
+                          )}>
+                            {t.dueDate}
+                          </span>
+                        ) : (
+                          <span className="text-[11px] text-muted-foreground/30">—</span>
+                        )}
+                      </td>
 
-                    {/* Edit / Delete for custom tasks */}
-                    {!t.isAuto && (
-                      <div className="flex gap-1 shrink-0" onClick={e => e.stopPropagation()}>
-                        <Button variant="ghost" size="sm" className="h-6 px-1.5" onClick={() => openEdit(t)}>
-                          <Edit className="size-3" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="h-6 px-1.5 text-destructive" onClick={() => deleteTask(t.id)}>
-                          <Trash2 className="size-3" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                      {/* Assignee */}
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="size-6 rounded-full bg-primary/10 text-primary grid place-items-center text-[9px] font-bold shrink-0">
+                            {t.assignee.split(" ").map(p => p[0]).join("")}
+                          </div>
+                          <span className="text-[11px] text-muted-foreground truncate">{t.assignee}</span>
+                        </div>
+                      </td>
+
+                      {/* Actions — visible on hover */}
+                      <td className="px-3 py-3 text-right" onClick={e => e.stopPropagation()}>
+                        {t.isAuto ? (
+                          <span className="text-[9px] text-muted-foreground/50 flex items-center gap-0.5 justify-end opacity-0 group-hover:opacity-100">
+                            <Zap className="size-2.5" /> auto
+                          </span>
+                        ) : (
+                          <div className="flex gap-0.5 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => openEdit(t)}
+                              className="size-6 rounded grid place-items-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                            >
+                              <Edit className="size-3" />
+                            </button>
+                            <button
+                              onClick={() => deleteTask(t.id)}
+                              className="size-6 rounded grid place-items-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                            >
+                              <Trash2 className="size-3" />
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           )}
         </div>
       )}
@@ -539,110 +589,102 @@ function CRMTasks() {
 
       {/* Task detail sheet */}
       <Sheet open={!!detail} onOpenChange={() => setDetail(null)}>
-        <SheetContent className="w-96">
+        <SheetContent className="w-96 flex flex-col">
           {detail && (() => {
-            const isDone = done.has(detail.id);
+            const isDone    = done.has(detail.id);
             const isOverdue = detail.dueDate && new Date(detail.dueDate) < now && !isDone;
             return (
-              <>
-                <div className="h-1 w-full rounded-full mb-4" style={{ backgroundColor: detail.color }} />
-                <SheetHeader className="mb-4">
-                  <div className="flex items-center gap-2.5 mb-1">
-                    <div
-                      className="size-9 rounded-lg flex items-center justify-center text-base"
-                      style={{ backgroundColor: detail.bgColor }}
+              <div className="flex flex-col flex-1 min-h-0">
+                {/* Type accent bar */}
+                <div className="h-0.5 w-full mb-5" style={{ backgroundColor: detail.color }} />
+
+                <SheetHeader className="mb-0">
+                  <div className="flex items-start gap-3">
+                    <button
+                      onClick={() => toggleDone(detail.id)}
+                      className="mt-0.5 shrink-0"
                     >
-                      {detail.icon}
-                    </div>
-                    <div>
-                      <SheetTitle className="text-sm leading-tight">{detail.title}</SheetTitle>
-                      <div className="text-[11px] font-semibold mt-0.5" style={{ color: detail.color }}>
-                        {detail.label}
+                      {isDone
+                        ? <CheckCircle2 className="size-5 text-success" />
+                        : <Circle       className="size-5 text-muted-foreground/40" />}
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <SheetTitle className={cn("text-sm leading-snug", isDone && "line-through text-muted-foreground")}>
+                        {detail.title}
+                      </SheetTitle>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="size-1.5 rounded-full shrink-0" style={{ backgroundColor: detail.color }} />
+                        <span className="text-[11px] text-muted-foreground">{detail.label}</span>
+                        <span className="mx-1 text-muted-foreground/30">·</span>
+                        <span className={cn(
+                          "text-[11px] font-semibold uppercase",
+                          detail.priority === "high" ? "text-destructive" : detail.priority === "medium" ? "text-warning" : "text-success"
+                        )}>
+                          {detail.priority}
+                        </span>
                       </div>
                     </div>
                   </div>
                 </SheetHeader>
 
-                <div className="flex flex-col gap-3">
-                  {/* Status toggle */}
-                  <div className="flex items-center gap-2.5 p-3 rounded-lg bg-surface border border-border">
-                    <button
-                      onClick={() => toggleDone(detail.id)}
-                      className="shrink-0"
-                    >
-                      {isDone
-                        ? <CheckCircle2 className="size-5" style={{ color: detail.color }} />
-                        : <Circle className="size-5 text-muted-foreground" />}
-                    </button>
-                    <span className={`text-xs font-medium ${isDone ? "line-through text-muted-foreground" : ""}`}>
-                      {isDone ? "Completed" : "Mark as done"}
-                    </span>
-                    <div className="ml-auto">
-                      <StatusPill tone={detail.priority === "high" ? "danger" : detail.priority === "medium" ? "warning" : "success"}>
-                        {detail.priority}
-                      </StatusPill>
-                    </div>
-                  </div>
-
-                  {/* Meta */}
+                {/* Flat meta rows */}
+                <div className="mt-5 border-t border-border">
                   {[
-                    detail.dueDate && { Icon: Calendar, label: "Due", val: detail.dueDate, danger: isOverdue && !isDone },
-                    detail.assignee && { Icon: User, label: "Assignee", val: detail.assignee },
-                    detail.isAuto  && { Icon: Zap,      label: "Source",   val: "Auto-detected from pipeline stage" },
+                    detail.dueDate    && { Icon: Calendar, label: "Due date",  val: detail.dueDate, danger: !!(isOverdue && !isDone) },
+                    detail.assignee   && { Icon: User,     label: "Assignee",  val: detail.assignee },
+                    detail.isAuto     && { Icon: Zap,      label: "Source",    val: "Auto-detected" },
                   ].filter(Boolean).map((row, i) => {
                     if (!row) return null;
-                    const { Icon, label, val, danger } = row as any;
+                    const { Icon, label, val, danger } = row as { Icon: any; label: string; val: string; danger?: boolean };
                     return (
-                      <div key={i} className="flex gap-2.5 items-center p-3 bg-surface rounded-lg border border-border">
-                        <Icon className="size-4 text-muted-foreground shrink-0" />
-                        <div>
-                          <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</div>
-                          <div className={`text-xs mt-0.5 ${danger ? "text-destructive font-semibold" : ""}`}>{val}</div>
-                        </div>
+                      <div key={i} className="flex items-center gap-3 py-3 border-b border-border">
+                        <Icon className="size-3.5 text-muted-foreground shrink-0" />
+                        <span className="text-[11px] text-muted-foreground w-20 shrink-0">{label}</span>
+                        <span className={cn("text-xs flex-1", danger ? "text-destructive font-semibold" : "")}>{val}</span>
                       </div>
                     );
                   })}
 
-                  {/* Linked contact */}
                   {detail.contactName && (
-                    <div className="p-3 bg-surface rounded-lg border border-border">
-                      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Contact</div>
-                      <div className="flex items-center gap-2.5">
-                        <div className="size-8 rounded-full bg-primary/10 text-primary grid place-items-center text-[10px] font-semibold">
+                    <div className="flex items-center gap-3 py-3 border-b border-border">
+                      <User className="size-3.5 text-muted-foreground shrink-0" />
+                      <span className="text-[11px] text-muted-foreground w-20 shrink-0">Contact</span>
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className="size-5 rounded-full bg-primary/10 text-primary grid place-items-center text-[8px] font-bold shrink-0">
                           {detail.contactName.split(" ").map(p => p[0]).slice(0, 2).join("")}
                         </div>
-                        <div>
-                          <div className="text-xs font-semibold text-primary">{detail.contactName}</div>
-                          <div className="text-[10px] text-muted-foreground">{detail.company}</div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-medium truncate">{detail.contactName}</div>
+                          <div className="text-[10px] text-muted-foreground truncate">{detail.company}</div>
                         </div>
                       </div>
                     </div>
                   )}
-
-                  {/* Notes */}
-                  {detail.notes && (
-                    <div className="p-3 bg-surface rounded-lg border border-border">
-                      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Notes</div>
-                      <div className="text-xs text-muted-foreground leading-relaxed">{detail.notes}</div>
-                    </div>
-                  )}
-
-                  {/* Footer actions */}
-                  <div className="flex gap-2 pt-2">
-                    {!detail.isAuto && (
-                      <>
-                        <Button variant="outline" size="sm" className="flex-1" onClick={() => openEdit(detail)}>
-                          <Edit className="size-3.5" /> Edit
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-destructive" onClick={() => deleteTask(detail.id)}>
-                          <Trash2 className="size-3.5" />
-                        </Button>
-                      </>
-                    )}
-                    <Button size="sm" className="flex-1" onClick={() => setDetail(null)}>Close</Button>
-                  </div>
                 </div>
-              </>
+
+                {/* Notes */}
+                {detail.notes && (
+                  <div className="mt-4">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">Notes</div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{detail.notes}</p>
+                  </div>
+                )}
+
+                {/* Footer actions */}
+                <div className="flex gap-2 mt-auto pt-5 border-t border-border">
+                  {!detail.isAuto && (
+                    <>
+                      <Button variant="outline" size="sm" className="flex-1" onClick={() => openEdit(detail)}>
+                        <Edit className="size-3.5" /> Edit
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-destructive px-2.5" onClick={() => deleteTask(detail.id)}>
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </>
+                  )}
+                  <Button size="sm" className="flex-1" onClick={() => setDetail(null)}>Close</Button>
+                </div>
+              </div>
             );
           })()}
         </SheetContent>
