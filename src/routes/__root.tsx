@@ -80,8 +80,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "Keehoo CRM — AI-native customer relationship platform" },
       { name: "twitter:description", content: "AI-powered CRM for contacts, pipeline, deals, tasks and marketing — with an embedded AI runtime." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/9831c123-fa4c-4893-8846-6ca9994c2b50" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/9831c123-fa4c-4893-8846-6ca9994c2b50" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/f363aac6-a95f-4275-bf7b-f5620e48b048" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/f363aac6-a95f-4275-bf7b-f5620e48b048" },
     ],
     links: [
       {
