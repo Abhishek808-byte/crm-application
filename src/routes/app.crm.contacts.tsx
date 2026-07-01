@@ -20,7 +20,8 @@ import {
 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { LeadflowPanel } from "@/components/crm/LeadflowPanel";
+import { LeadflowStrip } from "@/components/crm/LeadflowStrip";
+import { ActivityRail } from "@/components/crm/ActivityRail";
 
 export const Route = createFileRoute("/app/crm/contacts")({
   component: CRMContacts,
