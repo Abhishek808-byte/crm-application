@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { LeadflowPanel } from "@/components/crm/LeadflowPanel";
 
 export const Route = createFileRoute("/app/crm/contacts")({
   component: CRMContacts,
@@ -212,26 +213,30 @@ function ContactDetail({
 
       {/* ── Scrollable body ──────────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-3">
-        {/* Sales Pipeline */}
-        <div className="rounded-lg border border-border bg-card p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold">Sales Pipeline</h3>
-            <Select
-              value={contact.stage}
-              onValueChange={v => onStageChange(contact.id, v as ContactStage)}
-            >
-              <SelectTrigger className="h-7 text-[11px] w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {(Object.entries(STAGE_META) as [ContactStage, typeof STAGE_META[ContactStage]][]).map(
-                  ([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
+        {/* Leadflow — branching pipeline */}
+        <LeadflowPanel />
+
+        {/* Stage override (legacy quick control) */}
+        <div className="rounded-lg border border-border bg-card p-3 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-xs font-semibold">Stage override</div>
+            <div className="text-[10px] text-muted-foreground">Manually move this contact between pipeline stages</div>
           </div>
-          <PipelineStepper stage={contact.stage} />
+          <Select
+            value={contact.stage}
+            onValueChange={v => onStageChange(contact.id, v as ContactStage)}
+          >
+            <SelectTrigger className="h-7 text-[11px] w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.entries(STAGE_META) as [ContactStage, typeof STAGE_META[ContactStage]][]).map(
+                ([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>
+              )}
+            </SelectContent>
+          </Select>
         </div>
+
 
         {/* About */}
         <div className="rounded-lg border border-border bg-card p-4">
