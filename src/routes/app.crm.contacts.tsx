@@ -20,7 +20,8 @@ import {
 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { LeadflowPanel } from "@/components/crm/LeadflowPanel";
+import { LeadflowStrip } from "@/components/crm/LeadflowStrip";
+import { ActivityRail } from "@/components/crm/ActivityRail";
 
 export const Route = createFileRoute("/app/crm/contacts")({
   component: CRMContacts,
@@ -213,8 +214,8 @@ function ContactDetail({
 
       {/* ── Scrollable body ──────────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-3">
-        {/* Leadflow — branching pipeline */}
-        <LeadflowPanel />
+        {/* Leadflow — horizontal pipeline strip */}
+        <LeadflowStrip />
 
         {/* Stage override (legacy quick control) */}
         <div className="rounded-lg border border-border bg-card p-3 flex items-center justify-between gap-3">
@@ -238,20 +239,43 @@ function ContactDetail({
         </div>
 
 
-        {/* About */}
+        {/* About + Activity — 3-column layout matching mock */}
         <div className="rounded-lg border border-border bg-card p-4">
-          <h3 className="text-sm font-semibold mb-3">About</h3>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-            <AboutRow label="Full name"  value={contact.name}       icon={undefined} />
-            <AboutRow label="Company"    value={contact.company}    icon={Building2} />
-            <AboutRow label="Title"      value={contact.title}      icon={Pencil}    />
-            <AboutRow label="Industry"   value={contact.industry}   icon={Tag}       />
-            <AboutRow label="Location"   value={contact.location}   icon={MapPin}    />
-            <AboutRow label="Employees"  value={contact.employees}  icon={Users}     />
-            <AboutRow label="Funding"    value={contact.funding}    icon={Banknote}  />
-            <AboutRow label="Source"     value={contact.source}     icon={Globe}     />
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_minmax(220px,1fr)] gap-6">
+            {/* Person */}
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-3">Person</div>
+              <div className="space-y-3">
+                <AboutRow label="Full name" value={contact.name} />
+                <AboutRow label="Email"     value={contact.email}    icon={Mail} />
+                <AboutRow label="Phone"     value={contact.phone}    icon={Phone} />
+                <AboutRow label="Title"     value={contact.title}    icon={Pencil} />
+                <AboutRow label="Location"  value={contact.location} icon={MapPin} />
+                <AboutRow label="Industry"  value={contact.industry} icon={Tag} />
+              </div>
+            </div>
+
+            {/* Company */}
+            <div className="lg:border-l lg:border-border lg:pl-6">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-3">Company</div>
+              <div className="space-y-3">
+                <AboutRow label="Company"   value={contact.company}   icon={Building2} />
+                <AboutRow label="Domain"    value={contact.domain}    icon={Globe} />
+                <AboutRow label="Stage"     value={STAGE_META[contact.stage].label} />
+                <AboutRow label="ICP Score" value={`${contact.icpScore}%`} icon={BarChart3} />
+                <AboutRow label="Source"    value={contact.source} />
+                <AboutRow label="Employees" value={contact.employees} icon={Users} />
+                <AboutRow label="Funding"   value={contact.funding}   icon={Banknote} />
+              </div>
+            </div>
+
+            {/* Activity rail */}
+            <div className="lg:border-l lg:border-border lg:pl-6">
+              <ActivityRail />
+            </div>
           </div>
         </div>
+
 
         {/* Tasks */}
         <div className="rounded-lg border border-border bg-card p-4">
