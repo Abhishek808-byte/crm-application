@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   Activity, UserPlus, Sparkles, ShieldCheck, FileEdit, Send, Clock,
   Reply, Calendar, Presentation, FileText, Handshake, Trophy, XCircle,
-  MailPlus, Archive, ChevronDown, Mail, CheckCircle2,
+  MailPlus, Archive, Mail, CheckCircle2,
 } from "lucide-react";
 
 type ActState = "done" | "current" | "upcoming" | "terminal-good" | "terminal-bad";
@@ -101,24 +101,28 @@ const NOREPLY_BRANCH: ActStep[] = [
 
 export function ActivityRail() {
   const [branch, setBranch] = useState<Branch>("reply");
-  const [openId, setOpenId] = useState<string | null>("reply");
+  const [selectedId, setSelectedId] = useState<string>("reply");
 
-  const steps = [...SHARED, ...(branch === "reply" ? REPLY_BRANCH : NOREPLY_BRANCH)];
+  const steps = useMemo(
+    () => [...SHARED, ...(branch === "reply" ? REPLY_BRANCH : NOREPLY_BRANCH)],
+    [branch],
+  );
   const doneCount = steps.filter(s => s.state === "done").length;
+  const selected = steps.find(s => s.id === selectedId) ?? steps[0];
 
   const switchBranch = (b: Branch) => {
     setBranch(b);
-    setOpenId(b === "reply" ? "reply" : "f2");
+    setSelectedId(b === "reply" ? "reply" : "f2");
   };
 
   return (
-    <div className="rounded-lg border border-border bg-card flex flex-col h-full">
+    <div className="rounded-lg border border-border bg-card flex flex-col">
       {/* Header */}
-      <div className="px-3 py-2.5 border-b border-border flex items-center justify-between gap-2">
+      <div className="px-4 py-3 border-b border-border flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
           <Activity className="size-3.5 text-primary" />
           <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-            Activity Pipeline
+            Email Activity Pipeline
           </span>
         </div>
         <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-success/15 text-success flex items-center gap-1">
@@ -127,7 +131,7 @@ export function ActivityRail() {
       </div>
 
       {/* Branch toggle */}
-      <div className="px-3 pt-2.5 pb-2">
+      <div className="px-4 pt-3 pb-2">
         <div className="grid grid-cols-2 gap-1 p-0.5 rounded-md bg-muted/60">
           <button
             onClick={() => switchBranch("reply")}
@@ -160,115 +164,117 @@ export function ActivityRail() {
         </div>
       </div>
 
-      {/* Scrollable rail */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin px-3 pb-2">
-        {steps.map((s, i) => {
-          const isOpen = openId === s.id;
-          const Icon = s.icon;
-          const last = i === steps.length - 1;
-          const isDone = s.state === "done";
-          const isCurrent = s.state === "current";
-          const isUp = s.state === "upcoming";
-          const isWon = s.state === "terminal-good";
-          const isBad = s.state === "terminal-bad";
+      {/* Scrollable step list — fixed max-height, list scrolls independently */}
+      <div className="px-4 pb-3">
+        <div className="max-h-[440px] overflow-y-auto scrollbar-thin pr-1">
+          {steps.map((s, i) => {
+            const Icon = s.icon;
+            const last = i === steps.length - 1;
+            const isSelected = selectedId === s.id;
+            const isDone = s.state === "done";
+            const isCurrent = s.state === "current";
+            const isUp = s.state === "upcoming";
+            const isWon = s.state === "terminal-good";
+            const isBad = s.state === "terminal-bad";
 
-          return (
-            <div key={s.id} className="relative">
-              {!last && (
-                <span
-                  aria-hidden
-                  className={cn(
-                    "absolute left-[15px] top-8 bottom-0 w-0.5",
-                    isDone ? "bg-success/60" : "bg-border",
-                  )}
-                />
-              )}
-
-              <button
-                type="button"
-                onClick={() => setOpenId(isOpen ? null : s.id)}
-                className={cn(
-                  "relative w-full text-left flex items-start gap-2.5 py-2 pr-1.5 pl-0 rounded-md transition-colors",
-                  "hover:bg-muted/40",
-                  isOpen && "bg-accent",
+            return (
+              <div key={s.id} className="relative">
+                {!last && (
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "absolute left-[19px] top-9 bottom-0 w-0.5",
+                      isDone ? "bg-success/60" : "bg-border",
+                    )}
+                  />
                 )}
-              >
-                <div className={cn(
-                  "size-8 rounded-full grid place-items-center border-2 shrink-0 z-10 relative",
-                  isDone && "bg-success border-success text-white",
-                  isCurrent && "bg-primary border-primary text-primary-foreground ring-4 ring-primary/15",
-                  isUp && "bg-card border-border text-muted-foreground",
-                  isWon && "bg-success/10 border-success text-success",
-                  isBad && "bg-destructive/10 border-destructive text-destructive",
-                )}>
-                  <Icon className="size-3.5" strokeWidth={isDone ? 3 : 2} />
-                </div>
-                <div className="flex-1 min-w-0 pt-0.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className={cn(
-                      "text-[12px] font-semibold leading-tight truncate",
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedId(s.id)}
+                  className={cn(
+                    "relative w-full text-left flex items-start gap-3 p-2 rounded-md transition-colors border",
+                    isSelected
+                      ? "bg-accent border-border shadow-sm"
+                      : "border-transparent hover:bg-muted/40",
+                  )}
+                >
+                  <div className={cn(
+                    "size-8 rounded-full grid place-items-center border-2 shrink-0 z-10 relative",
+                    isDone && "bg-success border-success text-white",
+                    isCurrent && "bg-primary border-primary text-primary-foreground ring-4 ring-primary/15",
+                    isUp && "bg-card border-border text-muted-foreground",
+                    isWon && "bg-success/10 border-success text-success",
+                    isBad && "bg-destructive/10 border-destructive text-destructive",
+                  )}>
+                    <Icon className="size-3.5" strokeWidth={isDone ? 3 : 2} />
+                  </div>
+                  <div className="flex-1 min-w-0 pt-0.5">
+                    <div className={cn(
+                      "text-[12px] font-semibold leading-snug break-words",
                       isUp && "text-muted-foreground",
                       isCurrent && "text-primary",
                       isWon && "text-success",
                       isBad && "text-destructive",
                     )}>
                       {s.label}
-                    </span>
-                    <ChevronDown className={cn(
-                      "size-3 text-muted-foreground shrink-0 transition-transform",
-                      isOpen && "rotate-180",
-                    )} />
-                  </div>
-                  <div className="text-[10px] text-muted-foreground mt-0.5 leading-tight truncate">
-                    {s.sub} · {s.when}
-                  </div>
-                  {s.stage && (
-                    <span className={cn(
-                      "inline-block mt-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-full",
-                      isDone && "bg-success/10 text-success",
-                      isCurrent && "bg-primary/10 text-primary",
-                      isUp && "bg-muted text-muted-foreground",
-                      isWon && "bg-success/15 text-success",
-                      isBad && "bg-destructive/10 text-destructive",
-                    )}>
-                      {s.stage}
-                    </span>
-                  )}
-                </div>
-              </button>
-
-              {/* Inline detail — aligned to the rail (ml-[42px]) */}
-              {isOpen && (
-                <div className="ml-[42px] mb-2 mr-0.5 rounded-md border border-border bg-surface/60 p-2.5 space-y-2">
-                  <p className="text-[11px] text-foreground/80 leading-relaxed">
-                    {s.detail}
-                  </p>
-                  {s.email && (
-                    <div className="rounded-md border border-border bg-card p-2">
-                      <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
-                        <Mail className="size-2.5" /> Email
-                      </div>
-                      <div className="text-[11px] font-semibold leading-tight">{s.email.subject}</div>
-                      <p className="text-[10px] text-muted-foreground mt-1 leading-snug line-clamp-3">
-                        {s.email.preview}
-                      </p>
                     </div>
-                  )}
-                  {isCurrent && (
-                    <div className="flex items-center gap-1 text-[9px] font-semibold text-primary">
-                      <CheckCircle2 className="size-2.5" />
-                      Current step · awaiting next trigger
+                    <div className="text-[10px] text-muted-foreground mt-0.5 leading-snug break-words">
+                      {s.sub} · {s.when}
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
-          );
-        })}
+                  </div>
+                </button>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
+      {/* Fixed detail panel — never reflows the list */}
+      {selected && (
+        <div className="mx-4 mb-4 rounded-lg border border-border bg-surface/60 p-3 space-y-2">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              {selected.label}
+            </div>
+            {selected.stage && (
+              <span className={cn(
+                "text-[9px] font-semibold px-1.5 py-0.5 rounded-full",
+                selected.state === "done" && "bg-success/10 text-success",
+                selected.state === "current" && "bg-primary/10 text-primary",
+                selected.state === "upcoming" && "bg-muted text-muted-foreground",
+                selected.state === "terminal-good" && "bg-success/15 text-success",
+                selected.state === "terminal-bad" && "bg-destructive/10 text-destructive",
+              )}>
+                {selected.stage}
+              </span>
+            )}
+          </div>
+          <p className="text-[11px] text-foreground/80 leading-relaxed break-words">
+            {selected.detail}
+          </p>
+          {selected.email && (
+            <div className="rounded-md border border-border bg-card p-2.5">
+              <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+                <Mail className="size-2.5" /> Email
+              </div>
+              <div className="text-[11px] font-semibold leading-snug break-words">{selected.email.subject}</div>
+              <p className="text-[10px] text-muted-foreground mt-1 leading-snug break-words">
+                {selected.email.preview}
+              </p>
+            </div>
+          )}
+          {selected.state === "current" && (
+            <div className="flex items-center gap-1 text-[9px] font-semibold text-primary">
+              <CheckCircle2 className="size-2.5" />
+              Current step · awaiting next trigger
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Footer */}
-      <div className="px-3 py-2 border-t border-dashed border-border">
+      <div className="px-4 py-2 border-t border-dashed border-border">
         <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
           {branch === "reply"
             ? "Flow switches automatically if no reply within 3 days"
