@@ -239,42 +239,43 @@ function ContactDetail({
         </div>
 
 
-        {/* About + Activity — 3-column layout matching mock */}
-        <div className="rounded-lg border border-border bg-card p-4">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_minmax(220px,1fr)] gap-6">
-            {/* Person */}
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-3">Person</div>
-              <div className="space-y-3">
-                <AboutRow label="Full name" value={contact.name} />
-                <AboutRow label="Email"     value={contact.email}    icon={Mail} />
-                <AboutRow label="Phone"     value={contact.phone}    icon={Phone} />
-                <AboutRow label="Title"     value={contact.title}    icon={Pencil} />
-                <AboutRow label="Location"  value={contact.location} icon={MapPin} />
-                <AboutRow label="Industry"  value={contact.industry} icon={Tag} />
+        {/* About + Activity — About card + fixed-width Pipeline panel */}
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(380px,400px)] gap-3 items-start">
+          <div className="rounded-lg border border-border bg-card p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Person */}
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-3">Person</div>
+                <div className="space-y-3">
+                  <AboutRow label="Full name" value={contact.name} />
+                  <AboutRow label="Email"     value={contact.email}    icon={Mail} />
+                  <AboutRow label="Phone"     value={contact.phone}    icon={Phone} />
+                  <AboutRow label="Title"     value={contact.title}    icon={Pencil} />
+                  <AboutRow label="Location"  value={contact.location} icon={MapPin} />
+                  <AboutRow label="Industry"  value={contact.industry} icon={Tag} />
+                </div>
               </div>
-            </div>
 
-            {/* Company */}
-            <div className="lg:border-l lg:border-border lg:pl-6">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-3">Company</div>
-              <div className="space-y-3">
-                <AboutRow label="Company"   value={contact.company}   icon={Building2} />
-                <AboutRow label="Domain"    value={contact.domain}    icon={Globe} />
-                <AboutRow label="Stage"     value={STAGE_META[contact.stage].label} />
-                <AboutRow label="ICP Score" value={`${contact.icpScore}%`} icon={BarChart3} />
-                <AboutRow label="Source"    value={contact.source} />
-                <AboutRow label="Employees" value={contact.employees} icon={Users} />
-                <AboutRow label="Funding"   value={contact.funding}   icon={Banknote} />
+              {/* Company */}
+              <div className="md:border-l md:border-border md:pl-6">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-3">Company</div>
+                <div className="space-y-3">
+                  <AboutRow label="Company"   value={contact.company}   icon={Building2} />
+                  <AboutRow label="Domain"    value={contact.domain}    icon={Globe} />
+                  <AboutRow label="Stage"     value={STAGE_META[contact.stage].label} />
+                  <AboutRow label="ICP Score" value={`${contact.icpScore}%`} icon={BarChart3} />
+                  <AboutRow label="Source"    value={contact.source} />
+                  <AboutRow label="Employees" value={contact.employees} icon={Users} />
+                  <AboutRow label="Funding"   value={contact.funding}   icon={Banknote} />
+                </div>
               </div>
-            </div>
-
-            {/* Activity rail */}
-            <div className="lg:border-l lg:border-border lg:pl-6">
-              <ActivityRail />
             </div>
           </div>
+
+          {/* Activity rail — fixed-width panel */}
+          <ActivityRail />
         </div>
+
 
 
         {/* Tasks */}
